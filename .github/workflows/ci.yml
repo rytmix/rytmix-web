@@ -21,7 +21,13 @@ jobs:
           cache: npm # cache deps between runs for speed
 
       - name: Install dependencies
-        run: npm ci # clean, reproducible install from package-lock.json
+        # Use `npm install`, not `npm ci`. A known npm quirk means running
+        # `npm install` on Windows (our dev machines) prunes Linux-only optional
+        # deps (e.g. @emnapi/*, needed by Tailwind's wasm fallback) out of the
+        # lock file. `npm ci` is strict and would then fail here on Linux. `npm
+        # install` resolves what this platform needs and is tolerant of that
+        # cross-platform drift, so CI stays green.
+        run: npm install --no-audit --no-fund
 
       - name: Lint
         run: npm run lint
