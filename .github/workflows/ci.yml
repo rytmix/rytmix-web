@@ -1,0 +1,38 @@
+name: CI
+
+# WHEN this runs:
+on:
+  pull_request: # on every PR (the main safety net)
+  push:
+    branches: [main, develop] # and after merges/pushes to these branches
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest # a fresh Linux machine provided by GitHub
+
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20 # stable LTS (Next 16 needs Node 20.9+)
+          cache: npm # cache deps between runs for speed
+
+      - name: Install dependencies
+        run: npm ci # clean, reproducible install from package-lock.json
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type-check
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
+        env:
+          # Public, non-secret placeholder so the build never depends on a real
+          # backend URL. NEXT_PUBLIC_ vars are inlined into the client bundle,
+          # so they are NOT secrets.
+          NEXT_PUBLIC_API_BASE_URL: http://localhost:5139
