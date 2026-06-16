@@ -1,0 +1,44 @@
+name: CI
+
+# WHEN this runs:
+on:
+  pull_request: # on every PR (the main safety net)
+  push:
+    branches: [main, develop] # and after merges/pushes to these branches
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest # a fresh Linux machine provided by GitHub
+
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20 # stable LTS (Next 16 needs Node 20.9+)
+          cache: npm # cache deps between runs for speed
+
+      - name: Install dependencies
+        # Use `npm install`, not `npm ci`. A known npm quirk means running
+        # `npm install` on Windows (our dev machines) prunes Linux-only optional
+        # deps (e.g. @emnapi/*, needed by Tailwind's wasm fallback) out of the
+        # lock file. `npm ci` is strict and would then fail here on Linux. `npm
+        # install` resolves what this platform needs and is tolerant of that
+        # cross-platform drift, so CI stays green.
+        run: npm install --no-audit --no-fund
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type-check
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
+        env:
+          # Public, non-secret placeholder so the build never depends on a real
+          # backend URL. NEXT_PUBLIC_ vars are inlined into the client bundle,
+          # so they are NOT secrets.
+          NEXT_PUBLIC_API_BASE_URL: http://localhost:5139
