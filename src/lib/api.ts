@@ -2,7 +2,7 @@
  * Typed client for the Rytmix ASP.NET Core API.
  *
  * The base URL is ALWAYS read from `NEXT_PUBLIC_API_BASE_URL` — never hardcoded.
- * Both the web build (Vercel) and the desktop build (Tauri, Phase 4) read the
+ * Both the web build (Cloudflare Pages) and the planned Tauri desktop build read the
  * exact same variable, so the same compiled frontend works in both. The frontend
  * holds no secrets; only this public base URL.
  *

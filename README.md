@@ -6,6 +6,8 @@ separate `rytmix-api` backend (ASP.NET Core) over HTTPS and holds no secrets of
 its own. The same build later becomes a Tauri desktop app, so everything is
 client-rendered.
 
+**🔗 Live:** <https://rytmix-web.pages.dev/> — *currently a placeholder; search, the player, and the Web Audio visualizer are coming next.*
+
 ## Tech stack
 
 | Concern | Choice |
@@ -14,9 +16,9 @@ client-rendered.
 | Language | TypeScript |
 | Styling | Tailwind CSS v4 |
 | UI components | shadcn/ui (components live in `src/components/ui/`) |
-| Player state | Zustand *(added in Phase 1)* |
-| Audio / visualizer | HTML5 `<audio>` + Web Audio API *(Phase 1)* |
-| Hosting | Vercel |
+| Player state | Zustand *(planned)* |
+| Audio / visualizer | HTML5 `<audio>` + Web Audio API *(planned)* |
+| Hosting | Cloudflare Pages (static export) |
 
 ## Getting started
 
@@ -36,8 +38,8 @@ npm run dev
 
 Open http://localhost:3000.
 
-> The frontend needs the `rytmix-api` backend running for any real data. During
-> Phase 0 the home page is a static placeholder and works without it.
+> The frontend needs the `rytmix-api` backend running for any real data. For now
+> the home page is a static placeholder and works without it.
 
 ## Scripts
 
@@ -68,17 +70,17 @@ rytmix-web/
 ├── src/
 │   ├── app/                # App Router
 │   │   ├── layout.tsx       # root layout + metadata
-│   │   ├── page.tsx         # Phase 0 placeholder home page (client-rendered)
+│   │   ├── page.tsx         # placeholder home page (client-rendered)
 │   │   └── globals.css      # Tailwind + shadcn theme tokens
 │   ├── components/
 │   │   └── ui/              # shadcn/ui components (owned in-repo, editable)
 │   ├── lib/
 │   │   ├── api.ts           # typed API client — reads NEXT_PUBLIC_API_BASE_URL
 │   │   └── utils.ts         # cn() class-name helper
-│   └── store/              # Zustand stores (Phase 1) — empty for now
+│   └── store/              # Zustand stores (planned) — empty for now
 ├── public/                 # static assets
 ├── components.json          # shadcn/ui config
-├── next.config.ts           # export-compatible; output:'export' is added in Phase 4
+├── next.config.ts           # static export — output: 'export' is enabled
 ├── .env.example             # documents required env vars (committed)
 └── .env.local               # local values (gitignored)
 ```
@@ -98,7 +100,12 @@ rytmix-web/
 - Work on `feature/<name>` branches → open a Pull Request. Never commit directly
   to `main`.
 - Run `npm run lint`, `npx tsc --noEmit`, and `npm run build` before opening a PR.
-- The web frontend deploys to Vercel; each PR gets a preview URL.
+- The web frontend deploys to **Cloudflare Pages** (static export): pushes to
+  `main` go to production, and each PR gets a preview URL.
+- **Updating dependencies:** regenerate the lock file from scratch —
+  `rm -rf node_modules package-lock.json && npm install` — then commit it. A bare
+  `npm install` on Windows prunes Linux-only optional deps (e.g. `@emnapi/*`) out of
+  `package-lock.json`, which breaks the `npm ci` Cloudflare runs on Linux.
 ---
 
 © 2026 the Rytmix team. All rights reserved. Published for portfolio /
