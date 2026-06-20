@@ -3,15 +3,15 @@
 import { Button } from "@/components/ui/button";
 
 /**
- * Phase 0 placeholder home page.
+ * Placeholder home page.
  *
  * Intentionally minimal — its only job is to confirm the app builds, deploys,
  * and renders (Tailwind + shadcn/ui working). Real UI (search, player, the
- * Web Audio visualizer) arrives in Phase 1.
+ * Web Audio visualizer) comes later.
  *
  * Client-rendered (`"use client"`) per the project's core constraint: core UI
  * fetches from the API on the client, so the same build works as a static
- * export for the Tauri desktop app (Phase 4).
+ * export for the planned Tauri desktop app.
  */
 export default function Home() {
   return (
@@ -19,7 +19,7 @@ export default function Home() {
       <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Rytmix</h1>
       <p className="max-w-md text-balance text-muted-foreground">
         Web-first music streaming, rebuilt. The app is wired up and deploying —
-        search, the player, and the visualizer land in Phase 1.
+        search, the player, and the visualizer are coming soon.
       </p>
       <Button disabled>Coming soon</Button>
     </main>
