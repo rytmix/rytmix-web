@@ -1,0 +1,27 @@
+# CodeRabbit configuration for rytmix-web (Next.js + React + TypeScript)
+# Docs: https://docs.coderabbit.ai/reference/configuration
+language: en-US
+
+reviews:
+  profile: chill                  # fewer nitpicks, focus on real issues
+  request_changes_workflow: false # comments only; humans still approve/merge
+  high_level_summary: true        # plain-English summary at the top of each PR
+  poem: false                     # disable the signature poem
+  review_status: true             # post what was reviewed / skipped
+
+  auto_review:
+    enabled: true                 # review every PR automatically
+    drafts: false                 # skip draft PRs until marked ready
+    base_branches:                # also review PRs targeting these (main is always included)
+      - "develop"
+
+  # File-targeted review guidance (applies only to matching paths)
+  path_instructions:
+    - path: "**/*.{ts,tsx}"
+      instructions: >-
+        Flag React hook dependency bugs, unhandled promise rejections,
+        and any leaked API keys or secrets. Prefer correctness and
+        accessibility issues over cosmetic style.
+
+chat:
+  auto_reply: true                # respond automatically in comment threads
