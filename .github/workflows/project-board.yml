@@ -171,7 +171,11 @@ jobs:
             } else if (action === 'closed' && pr.merged) {
               if (pr.base.ref === 'develop') {
                 await moveClosingIssues('Merged to develop');
-              } else if (pr.base.ref === 'main' && pr.head.ref === 'develop') {
+              } else if (
+                pr.base.ref === 'main' &&
+                pr.head.ref === 'develop' &&
+                pr.head.repo?.full_name === pr.base.repo?.full_name
+              ) {
                 await deployThisRepo();
               }
             }
