@@ -14,6 +14,19 @@
 // in the bundle, not a runtime lookup. It may be `undefined` if the var is unset.
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
+/**
+ * A track as the Rytmix API returns it — the client-side mirror of the backend's
+ * `TrackDto`. camelCase to match ASP.NET Core's default JSON serialization.
+ */
+export interface Track {
+  id: string;
+  title: string;
+  artist: string;
+  duration: number;
+  artworkUrl: string;
+  streamUrl: string;
+}
+
 /** Thrown when the API responds with a non-2xx status. */
 export class ApiError extends Error {
   constructor(
