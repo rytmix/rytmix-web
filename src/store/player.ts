@@ -49,8 +49,11 @@ export const usePlayerStore = create<PlayerState>()((set, get) => ({
     const el = audioElement;
 
     if (track) {
-      const nextQueue = queue ?? [track];
-      const index = nextQueue.findIndex((t) => t.id === track.id);
+      const providedQueue = queue ?? [track];
+      const index = providedQueue.findIndex((t) => t.id === track.id);
+      // If the caller passed a queue the track isn't in, play it standalone so
+      // currentIndex can't point at a different track than currentTrack.
+      const nextQueue = index === -1 ? [track] : providedQueue;
       set({
         currentTrack: track,
         queue: nextQueue,
@@ -100,8 +103,9 @@ export const usePlayerStore = create<PlayerState>()((set, get) => ({
   },
 
   seek: (seconds) => {
-    set({ position: seconds });
-    if (audioElement) audioElement.currentTime = seconds;
+    const safe = Number.isFinite(seconds) ? Math.max(0, seconds) : 0;
+    set({ position: safe });
+    if (audioElement) audioElement.currentTime = safe;
   },
 
   setVolume: (volume) => {
