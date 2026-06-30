@@ -1,15 +1,17 @@
 "use client";
 
 /**
- * Persistent now-playing bar: artwork/title/artist on the left, transport
- * controls + seekbar in the middle, volume on the right.
+ * Persistent now-playing bar: artwork/title/artist, transport controls, a
+ * draggable seekbar, and volume. Fixed to the bottom of the viewport so it
+ * stays visible on every page (the app shell, P1-8, reserves space for it).
  *
  * Each section subscribes to its own narrow store slice, so the per-second
- * `position` tick re-renders only <SeekBar /> — the buttons, track info, and
- * volume control stay put (see P1-6 "watch out").
+ * `position` tick re-renders only the seekbar — not the buttons, track info, or
+ * volume control (see P1-6 "watch out"). Desktop and mobile each render their
+ * own layout; only one is visible at a time.
  */
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import {
   Music,
   Pause,
@@ -39,6 +41,10 @@ function formatTime(seconds: number): string {
   return `${mins}:${secs.toString().padStart(2, "0")}`;
 }
 
+// Last audible level, shared across the desktop and mobile volume controls so
+// muting then unmuting restores the same level regardless of which one is used.
+let lastAudibleVolume = 1;
+
 function TrackInfo() {
   const track = useCurrentTrack();
 
@@ -47,22 +53,14 @@ function TrackInfo() {
       <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted">
         {track?.artworkUrl ? (
           // eslint-disable-next-line @next/next/no-img-element -- remote Jamendo art; static export runs with images.unoptimized
-          <img
-            src={track.artworkUrl}
-            alt=""
-            className="size-full object-cover"
-          />
+          <img src={track.artworkUrl} alt="" className="size-full object-cover" />
         ) : (
           <Music className="size-5 text-muted-foreground" />
         )}
       </div>
       <div className="min-w-0">
-        <p className="truncate text-sm font-medium">
-          {track?.title ?? "Nothing playing"}
-        </p>
-        <p className="truncate text-xs text-muted-foreground">
-          {track?.artist ?? "—"}
-        </p>
+        <p className="truncate text-sm font-medium">{track?.title ?? "Nothing playing"}</p>
+        <p className="truncate text-xs text-muted-foreground">{track?.artist ?? "—"}</p>
       </div>
     </div>
   );
@@ -78,13 +76,7 @@ function TransportControls() {
 
   return (
     <div className="flex items-center gap-1">
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={prev}
-        disabled={!hasTrack}
-        aria-label="Previous track"
-      >
+      <Button variant="ghost" size="icon" onClick={prev} disabled={!hasTrack} aria-label="Previous track">
         <SkipBack />
       </Button>
       <Button
@@ -96,13 +88,7 @@ function TransportControls() {
       >
         {isPlaying ? <Pause /> : <Play />}
       </Button>
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={next}
-        disabled={!hasTrack}
-        aria-label="Next track"
-      >
+      <Button variant="ghost" size="icon" onClick={next} disabled={!hasTrack} aria-label="Next track">
         <SkipForward />
       </Button>
     </div>
@@ -148,28 +134,21 @@ function SeekBar() {
 function VolumeControl() {
   const volume = useVolume();
   const setVolume = usePlayerStore((s) => s.setVolume);
-  // Remember the level before muting so the toggle can restore it.
-  const lastNonZero = useRef(1);
 
   const VolumeIcon = volume === 0 ? VolumeX : volume < 0.5 ? Volume1 : Volume2;
 
   const toggleMute = () => {
     if (volume === 0) {
-      setVolume(lastNonZero.current || 1);
+      setVolume(lastAudibleVolume || 1);
     } else {
-      lastNonZero.current = volume;
+      lastAudibleVolume = volume;
       setVolume(0);
     }
   };
 
   return (
     <div className="flex w-32 items-center gap-2">
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={toggleMute}
-        aria-label={volume === 0 ? "Unmute" : "Mute"}
-      >
+      <Button variant="ghost" size="icon" onClick={toggleMute} aria-label={volume === 0 ? "Unmute" : "Mute"}>
         <VolumeIcon />
       </Button>
       <Slider
@@ -178,7 +157,11 @@ function VolumeControl() {
         max={100}
         step={1}
         value={Math.round(volume * 100)}
-        onValueChange={(v) => setVolume((v as number) / 100)}
+        onValueChange={(v) => {
+          const next = (v as number) / 100;
+          if (next > 0) lastAudibleVolume = next; // keep restore level current as the slider moves
+          setVolume(next);
+        }}
       />
     </div>
   );
@@ -186,18 +169,31 @@ function VolumeControl() {
 
 export default function NowPlayingBar() {
   return (
-    <footer className="sticky bottom-0 z-50 border-t bg-background">
-      <div className="grid grid-cols-[1fr_auto] items-center gap-4 px-4 py-3 md:grid-cols-3">
+    <footer className="fixed inset-x-0 bottom-0 z-50 border-t bg-background">
+      {/* Desktop: identity | transport + seek | volume */}
+      <div className="hidden items-center gap-4 px-4 py-3 md:grid md:grid-cols-3">
         <TrackInfo />
         <div className="flex flex-col items-center gap-2">
           <TransportControls />
-          <div className="hidden w-full max-w-md md:block">
+          <div className="w-full max-w-md">
             <SeekBar />
           </div>
         </div>
-        <div className="hidden justify-end md:flex">
+        <div className="flex justify-end">
           <VolumeControl />
         </div>
+      </div>
+
+      {/* Mobile: identity + transport on top, seek + volume below (kept reachable) */}
+      <div className="flex flex-col gap-2 px-3 py-2 md:hidden">
+        <div className="flex items-center gap-2">
+          <div className="min-w-0 flex-1">
+            <TrackInfo />
+          </div>
+          <TransportControls />
+        </div>
+        <SeekBar />
+        <VolumeControl />
       </div>
     </footer>
   );
