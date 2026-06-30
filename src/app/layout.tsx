@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import AudioHost from "@/components/audio-host";
+import NowPlayingBar from "@/components/NowPlayingBar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,7 +30,8 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        {children}
+        <div className="flex-1">{children}</div>
+        <NowPlayingBar />
         <AudioHost />
       </body>
     </html>
